@@ -50,7 +50,7 @@ def decoder_block(small_ip_layer, large_ip_layer, filters):
     output_layer = layers.concatenate([output_layer, large_ip_layer])
     # Add some number of separable convolution layers
     output_layer = separable_conv2d_batchnorm(output_layer, filters)
-    output_layer = separable_conv2d_batchnorm(output_layer, filters)
+    # output_layer = separable_conv2d_batchnorm(output_layer, filters)
     return output_layer
 
 
@@ -58,22 +58,16 @@ def fcn_model(inputs, num_classes):
     # Add Encoder Blocks.
     # Remember that with each encoder layer, the depth of your model (the number of filters) increases.
     skip_0 = inputs
-    x = encoder_block(inputs, 64, 2)
+    x = encoder_block(inputs, 32, 2)
     skip_1 = x
-    x = encoder_block(x, 128, 2)
-    skip_2 = x
-    x = encoder_block(x, 256, 2)
-    skip_3 = x
-    x = encoder_block(x, 512, 2)
+    x = encoder_block(x, 64, 2)
 
     # Add 1x1 Convolution layer using conv2d_batchnorm().
-    x = conv2d_batchnorm(x, 512, kernel_size=1, strides=1)
+    x = conv2d_batchnorm(x, 128, kernel_size=1, strides=1)
 
     # Add the same number of Decoder Blocks as the number of Encoder Blocks
-    x = decoder_block(x, skip_3, 512)
-    x = decoder_block(x, skip_2, 256)
-    x = decoder_block(x, skip_1, 128)
-    x = decoder_block(x, skip_0, 64)
+    x = decoder_block(x, skip_1, 64)
+    x = decoder_block(x, skip_0, 32)
 
     # The function returns the output layer of your model. "x" is the final layer obtained from the last decoder_block()
     return layers.Conv2D(num_classes, 3, activation='softmax', padding='same')(x)
@@ -86,11 +80,11 @@ num_classes = 3
 
 output_layer = fcn_model(inputs, num_classes)
 
-learning_rate = 0.0001
-batch_size = 5
-num_epochs = 5
-steps_per_epoch = 10
-validation_steps = 10
+learning_rate = 0.01
+batch_size = 128
+num_epochs = 10
+steps_per_epoch = 200
+validation_steps = 50
 workers = 2
 
 # Define the Keras model and compile it for training
